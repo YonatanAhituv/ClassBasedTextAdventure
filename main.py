@@ -5,6 +5,8 @@ import copy  # Ok I really need to chill at this point huh
 # import playsound
 
 # Basic Definitions
+
+
 class Helper():
     def __init__(self, interact=None):
         self.interact = interact
@@ -20,7 +22,8 @@ class Helper():
         return outputList
 
     def lowerToNormal(self, inputList, inputString):
-        index = Helper().lowerList(inputList).index(inputString.lower())  # Get index of connected room in keys
+        index = Helper().lowerList(inputList).index(
+            inputString.lower())  # Get index of connected room in keys
         entry = list(inputList)[index]  # Get normal case version
         return entry
 
@@ -34,8 +37,10 @@ class Helper():
             if userInput.isdigit():
                 userInput = int(userInput)
                 if userInput in range(1, i + 1):
-                    userInput = inputs[userInput - 1]  # Set to corresponding key
-            if userInput.lower() in self.lowerList(inputs):
+                    # Set to corresponding key
+                    userInput = inputs[userInput - 1]
+                    break
+            elif userInput.lower() in self.lowerList(inputs):
                 userInput = self.lowerToNormal(inputs, userInput)
                 break
         return userInput
@@ -63,9 +68,11 @@ class Player():
         self.inventory = inventory
 
     def pickup(self, interact):
-        invInteract = copy.deepcopy(interact.grab())  # No python I do not want the refrence to the object from the room how many times do I have to tell you why is this so complicated I'm literally returning it in a function why should I even need to do this
+        # No python I do not want the refrence to the object from the room how many times do I have to tell you why is this so complicated I'm literally returning it in a function why should I even need to do this
+        invInteract = copy.deepcopy(interact.grab())
         invInteract.visible = True  # Slight hack to keep it still visible
         self.inventory.append(invInteract)
+
 
 class Room():
     def __init__(self, welcomeMessage, interacts, connectedRooms):
@@ -75,6 +82,7 @@ class Room():
 
     def welcome(self):
         Helper().slowPrint(self.welcomeMessage)
+
 
 class Interactable():
     def __init__(self, name, fanfare="", actions={}, data={}, preface="", obtainable=True, visible=True):
@@ -105,15 +113,18 @@ class Purchase():
             if item.name == self.item.name:
                 Helper().slowPrint("You already have this item!")
                 return
-        Helper().slowPrint(speaker + " would like to sell you " + self.name + " for $" + str(self.price))
+        Helper().slowPrint(speaker + " would like to sell you " +
+                           self.name + " for $" + str(self.price))
         Helper().slowPrint("You have: $" + str(player.stats["money"]))
-        userInput = Helper().listInput(["Purchase", "Reject Offer"], "What would you like to do: >>> ")
+        userInput = Helper().listInput(
+            ["Purchase", "Reject Offer"], "What would you like to do: >>> ")
         if userInput == "Purchase":
             if player.stats["money"] < self.price:
                 Helper().slowPrint("The item is too expensive!")
                 return
             player.stats["money"] -= self.price
-            Helper().slowPrint("You new balance: $" + str(player.stats["money"]))
+            Helper().slowPrint("You new balance: $" +
+                               str(player.stats["money"]))
             for interact in room.interacts:  # Remove interact from the room if it already exists
                 if interact.name == self.name:
                     interact.visible = False
@@ -136,6 +147,7 @@ class InteractModification():
             if interact.name == self.interact:
                 interactList[i].visible = self.value
 
+
 class Dialogue():
     def __init__(self, prompt, options, prologue="", epilogue="", speaker=True):
         self.prompt = prompt
@@ -154,12 +166,14 @@ class Dialogue():
                 Helper().slowPrint(self.prompt)
             if self.epilogue != "":
                 print(self.epilogue)
-            option = self.options[Helper().listInput(list(self.options.keys()), "You: ")]
+            option = self.options[Helper().listInput(
+                list(self.options.keys()), "You: ")]
             print()
             if option is False or option is True:  # Close if False
                 return option
             else:
-                returnValue = option(speaker, player, room)  # Call nested function
+                # Call nested function
+                returnValue = option(speaker, player, room)
                 if returnValue is not True:
                     break
 
@@ -183,6 +197,7 @@ class AdvancedInteractable(Interactable):
             else:
                 selectedAction["function"](calls[0], calls[1])
 
+
 class PurchasableInteractable(Interactable):
     def __init__(self, name, data={}, obtainable=False, preface="", visible=True):
         self.name = name
@@ -199,7 +214,8 @@ class PurchasableInteractable(Interactable):
         if action == "pickup":
             Helper().slowPrint(self.data["pickup"])
         elif action == "buy":
-            Purchase(self.name, self.data["price"], self.data["item"]).purchase(self.data["speaker"], player, room)
+            Purchase(self.name, self.data["price"], self.data["item"]).purchase(
+                self.data["speaker"], player, room)
 
 
 class NPC():  # Still an interactable but so specific it has no need to inherit from the Interactable class
@@ -218,34 +234,40 @@ class NPC():  # Still an interactable but so specific it has no need to inherit 
         self.preface = preface
 
     def calculateAttack(self, attack, power, enemyName, hp, message):
-        attackDamage = attack["damage"] + randint(-attack["random"], attack["random"])
+        attackDamage = attack["damage"] + \
+            randint(-attack["random"], attack["random"])
         attackDamage = round(attackDamage * (power / 10))
-        Helper().slowPrint(Helper().formatString(attack["message"], {"enemyName": enemyName, "attackDamage": str(attackDamage)}))
+        Helper().slowPrint(Helper().formatString(attack["message"], {
+            "enemyName": enemyName, "attackDamage": str(attackDamage)}))
         newHP = hp - attackDamage
-        if newHP < 0: 
-            newHP = 0 
+        if newHP < 0:
+            newHP = 0
         Helper().slowPrint(message + " " + str(newHP))
         return newHP
-
 
     def fight(self, playerStats, enemyStats):
         while True:
             Helper().slowPrint("\nYou've entered a fight with: " + self.fightName + "!")
             Helper().slowPrint("Their Health: " + str(enemyStats["hp"]))
-            Helper().slowPrint("Your HP: " + str(playerStats["hp"]) + " | " + "Your Power: " + str(playerStats["power"]))
-            attack = Helper().listInput(list(playerStats["attacks"].keys()), "You can: ")
+            Helper().slowPrint("Your HP: " +
+                               str(playerStats["hp"]) + " | " + "Your Power: " + str(playerStats["power"]))
+            attack = Helper().listInput(
+                list(playerStats["attacks"].keys()), "You can: ")
             attack = playerStats["attacks"][attack]
             # damage: 10, random: 4, message: "stuff ${enemyname} ${hp}"
-            enemyStats["hp"] = self.calculateAttack(attack, playerStats["power"], self.fightName, enemyStats["hp"], self.fightName + " health: ")
+            enemyStats["hp"] = self.calculateAttack(
+                attack, playerStats["power"], self.fightName, enemyStats["hp"], self.fightName + " health: ")
             if enemyStats["hp"] <= 0:
                 Helper().slowPrint("You win!\n")
                 self.visible = False
                 return
 
             attacks = list(enemyStats["attacks"].keys())
-            attack = attacks[randint(0, len(attacks) - 1)]  # Pick random attack
+            # Pick random attack
+            attack = attacks[randint(0, len(attacks) - 1)]
             attack = enemyStats["attacks"][attack]
-            playerStats["hp"] = self.calculateAttack(attack, 10, self.fightName, playerStats["hp"], "Your health: ")
+            playerStats["hp"] = self.calculateAttack(
+                attack, 10, self.fightName, playerStats["hp"], "Your health: ")
             if playerStats["hp"] <= 0:
                 Helper().slowPrint("You died!")
                 return
@@ -280,7 +302,8 @@ rooms = {
                                         BasicInteractable(
                                             "Some guys dog",
                                             "Uhm, ok I guess you got this dog now",
-                                            {"pet": ["pet", "talk to", "check on"]},
+                                            {"pet": [
+                                                "pet", "talk to", "check on"]},
                                             {"pet": "You pet the dog, it seems happy."},
                                         ),
                                     ).purchase,
@@ -288,7 +311,8 @@ rooms = {
                                 },
                             ).speak,  # Nested Classes (:
                             '"Cool! When was this mall built?"': Dialogue(
-                                "1962, by George, no last name.", {"Leave": False}
+                                "1962, by George, no last name.", {
+                                    "Leave": False}
                             ).speak,
                             '"No thanks, I didn\'t want to know"': False,
                         },
@@ -317,7 +341,7 @@ rooms = {
         {"Enter the Mall": "mall"},
     ),
     "mall": Room(
-        "It’s May of 2005, and you’ve decided to go to the mall, welcome! Where would you like to go?",
+        "It's May of 2005, and you've decided to go to the mall, welcome! Where would you like to go?",
         [],
         {
             "Enter Gucci Store": "gucci",
@@ -333,7 +357,7 @@ rooms = {
                 "Gucci Tissue",
                 "No thanks",
                 {
-                    "pickup": ["grab", "look at", "admire", "check", "pick up"],
+                    "pickup": ["grab", "look at", "admire", "check", "pick up", "take"],
                     "buy": ["buy", "purchase", "collect"],
                 },
                 {
@@ -467,13 +491,13 @@ rooms = {
                     "dialogue": Dialogue(
                         "Ay man, i appreciate that mane, Ima buy you whateva u want in this store bruh",
                         {
-                            '"No, that’s quite alright, I really appreciate it though"': False,
+                            '"No, thats quite alright, I really appreciate it though"': False,
                             '"Thank you so much, can I please get this blue sweatshirt?"': Purchase(
                                 "Bathing Ape Sweatshirt",
                                 0,
                                 BasicInteractable(
                                     "Bathing Ape Sweatshirt",
-                                    'You: "Thank you so much, Soulja Boy!"\nSOULJA BOY: "Ya ofc buddy boy, I’m the first rapper to ever give back to my fans"',
+                                    'You: "Thank you so much, Soulja Boy!"\nSOULJA BOY: "Ya ofc buddy boy, Im the first rapper to ever give back to my fans"',
                                     {"use": ["use", "put on", "try on"]},
                                     {
                                         "use": "You put on the Bathing Ape Sweatshirt and zip up the hoodie. You are a shark."
@@ -681,21 +705,19 @@ rooms = {
                     },
                 },
             )
-        ],
-        {"Exit": "foodCourt"},
+        ], {"Exit": "foodCourt"},
     ),
 }
-
-
 
 
 possibilities = {
     "take": ["grab", "pick up", "collect", "retrieve", "take", "obtain"],
     "travel": ["go", "travel", "leave", "walk", "exit", "run", "go to", "go up"],
     "quit": ["quit", "exit", "quit game", "stop"]
-} 
+}
 
 # Engine
+
 
 def getAllInteracts(interactList, preface=False):
     interactables = []
@@ -707,6 +729,7 @@ def getAllInteracts(interactList, preface=False):
             interactables.append(interact.preface + interact.name)
     return interactables
 
+
 def removeInteractByObject(interactList, interactObj):
     for i, interact in enumerate(interactList):
         if interactObj == interact:
@@ -714,10 +737,12 @@ def removeInteractByObject(interactList, interactObj):
             break
     return interactList
 
+
 def getInteractByName(name, interactList):
     for interact in interactList:
         if name.lower() == interact.name.lower() or name.lower() == interact.preface.lower() + interact.name.lower():
             return interact
+
 
 def listToStr(inputList):
     output = ""
@@ -725,19 +750,22 @@ def listToStr(inputList):
         output += item + ", "
     return output[:-2]
 
+
 def checkStart(inputStr, possibilites):
     matches = []
     for possibility in possibilites:
         if possibility in inputStr:
             if inputStr.split(possibility)[0] == '':
-                matches.append(possibility) 
+                matches.append(possibility)
     if len(matches) == 0:
         return ""
-    highestLength = matches[0]  # Find the match with the most characters, fixes bug with 'talk' vs 'talk to' 
+    # Find the match with the most characters, fixes bug with 'talk' vs 'talk to'
+    highestLength = matches[0]
     for match in matches:
         if len(match) > len(highestLength):
             highestLength = match
     return highestLength
+
 
 def printInteracts(message, interactList):
     output = ""
@@ -749,8 +777,10 @@ def printInteracts(message, interactList):
     if output != "":
         Helper().slowPrint(message + " " + output[:-2])
 
+
 def printRooms(message, roomList):
     Helper().slowPrint(message + " " + listToStr(list(currentRoom.connectedRooms.keys())))
+
 
 def isValidRoom(rooms, location):
     xVals = rooms.keys()
@@ -760,6 +790,7 @@ def isValidRoom(rooms, location):
             return True
     return False
 
+
 def copyListValue(inputList, interact=False):
     outputList = []
     for item in inputList:
@@ -767,6 +798,7 @@ def copyListValue(inputList, interact=False):
             continue
         outputList.append(item)
     return outputList
+
 
 def orderActions(interactables):
     actions = {}
@@ -780,24 +812,24 @@ def orderActions(interactables):
 
 
 currentPlayer = Player(rooms["mall"], {
-    "hp": 100, 
+    "hp": 100,
     "power": 10,
     "money": 100,
     "attacks": {
         "Kick": {
             "damage": 4,
             "random": 2,
-            "message": "You go in for a kick, hitting ${enemyName} for ${attackDamage} HP!" 
+            "message": "You go in for a kick, hitting ${enemyName} for ${attackDamage} HP!"
         },
         "Flail About!": {
             "damage": 2,
             "random": 1,
-            "message": "You flail about randomly, ${enemyName} looks at you, confused, losing ${attackDamage} HP!" 
+            "message": "You flail about randomly, ${enemyName} looks at you, confused, losing ${attackDamage} HP!"
         },
         "Super fast mega spinny attack": {
             "damage": 5,
             "random": 0,
-            "message": "You put out your arms and start spinning in circles, gaining more and more speed. ${enemyName} is hit for ${attackDamage} HP!" 
+            "message": "You put out your arms and start spinning in circles, gaining more and more speed. ${enemyName} is hit for ${attackDamage} HP!"
         }
     }
 })
@@ -816,14 +848,16 @@ while True:
     currentRoom.welcome()
 
     # Organize interacts
-    usableInteracts = copyListValue(currentRoom.interacts, interact=True)  # Start with rooms interacts
+    usableInteracts = copyListValue(
+        currentRoom.interacts, interact=True)  # Start with rooms interacts
     for interact in currentPlayer.inventory:
         if interact.visible:
             usableInteracts.append(interact)  # Add inventory interacts
 
     # Create dictonary of possibilities
     actionDict = orderActions(usableInteracts)
-    for interact in actionDict:  # { "interact": { "action1" : ["possibility1", "2", "etc"] } }
+    # { "interact": { "action1" : ["possibility1", "2", "etc"] } }
+    for interact in actionDict:
         for action in actionDict[interact]:
             potentialInputs = actionDict[interact][action]
             possibilities[action] = potentialInputs
@@ -833,14 +867,14 @@ while True:
         if interact.obtainable:
             obtainableInteracts.append(interact)
 
-    
     printInteracts("In Your Backpack:", currentPlayer.inventory)
 
     printInteracts("You see:", currentRoom.interacts)
 
     printRooms("You can:", currentRoom.connectedRooms)
 
-    userSelection = input("HP: " + str(currentPlayer.stats["hp"]) + " | Money: $" + str(currentPlayer.stats["money"]) + ": ").lower()
+    userSelection = input("HP: " + str(currentPlayer.stats["hp"]) + " | Money: $" + str(
+        currentPlayer.stats["money"]) + ": ").lower()
 
     for item in possibilities:  # Split up input
         command = checkStart(userSelection, possibilities[item])
@@ -848,8 +882,9 @@ while True:
             if len(userSelection.split(command + " ")) > 1:
                 info = userSelection.split(command + " ")[1]
             break
-    
-    if command in possibilities["take"] and info in Helper().lowerList(getAllInteracts(obtainableInteracts)):  # Handle item taking
+
+    # Handle item taking
+    if command in possibilities["take"] and info in Helper().lowerList(getAllInteracts(obtainableInteracts)):
         currentPlayer.pickup(getInteractByName(info, obtainableInteracts))
 
     elif userSelection in Helper().lowerList(list(currentRoom.connectedRooms.keys())):  # Handle travel
@@ -857,12 +892,15 @@ while True:
         currentPlayer.room = rooms[currentRoom.connectedRooms[key]]
 
     elif info in Helper().lowerList(getAllInteracts(usableInteracts, preface=True)):  # Handle custom interactions
-        selectedInteract = getInteractByName(info, usableInteracts)  # Get interact object by name
+        selectedInteract = getInteractByName(
+            info, usableInteracts)  # Get interact object by name
 
         for action in selectedInteract.actions:  # Go over possible actions
-            for possibility in selectedInteract.actions[action]:  # Go over action's text possibilities
+            # Go over action's text possibilities
+            for possibility in selectedInteract.actions[action]:
                 if possibility == command:
-                    selectedInteract.performAction(action, currentPlayer, currentRoom)
+                    selectedInteract.performAction(
+                        action, currentPlayer, currentRoom)
                     break
     elif command in possibilities["quit"]:
         print("Bye!")
