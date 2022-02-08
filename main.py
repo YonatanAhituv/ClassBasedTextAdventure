@@ -848,8 +848,7 @@ while True:
     currentRoom.welcome()
 
     # Organize interacts
-    usableInteracts = copyListValue(
-        currentRoom.interacts, interact=True)  # Start with rooms interacts
+    usableInteracts = copyListValue(currentRoom.interacts, interact=True)  # Start with rooms interacts
     for interact in currentPlayer.inventory:
         if interact.visible:
             usableInteracts.append(interact)  # Add inventory interacts
@@ -899,8 +898,7 @@ while True:
             # Go over action's text possibilities
             for possibility in selectedInteract.actions[action]:
                 if possibility == command:
-                    selectedInteract.performAction(
-                        action, currentPlayer, currentRoom)
+                    selectedInteract.performAction(action, currentPlayer, currentRoom)
                     break
     elif command in possibilities["quit"]:
         print("Bye!")
